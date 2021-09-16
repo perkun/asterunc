@@ -33,16 +33,48 @@ int main(int argc, char *argv[])
                          "600");
     argparser.add_option('W', "width", "texture width, default=600px", false,
                          "600");
+    argparser.add_option('r', "range",
+                         "Specify the range of value. Values obove will have "
+                         "the value of 'range' (cutoff)",
+                         false, "0.1");
+    argparser.add_flag('i', "info", "display info and exit");
+    argparser.add_flag('a', "auto-range", "auto max range");
 
     Args args = argparser.parse_args(argc, argv);
 
     Mesh mesh(args.get_value<std::string>("model"),
               args.get_value<std::string>("errors"));
 
+
+    Range range_plus = mesh.get_error_ranges(ErrorType::POSITIVE);
+    Range range_minus = mesh.get_error_ranges(ErrorType::NEGATIVE);
+
+    double range;
+    if (args["auto-range"])
+    {
+        range = std::max(range_plus.max, -range_minus.max);
+    }
+    else
+        range = args.get_value<double>("range");
+
+
+    if (args["info"])
+    {
+        cout << "INFO:" << endl;
+
+        cout << "num vertices: " << mesh.vertices.size() << endl;
+        cout << "num faces " << mesh.faces.size() << endl;
+        cout << "range: " << range << endl;
+        cout << "(" << range_minus.max << ") --- (" << range_minus.min
+             << ") -- 0 -- (" << range_plus.min << ") --- (" << range_plus.max
+             << ")\n";
+        return 0;
+    }
+
     std::vector<Triangle> triangles_plus =
-        mesh.get_triangles(ErrorType::POSITIVE);
+        mesh.get_triangles(ErrorType::POSITIVE, range);
     std::vector<Triangle> triangles_minus =
-        mesh.get_triangles(ErrorType::NEGATIVE);
+        mesh.get_triangles(ErrorType::NEGATIVE, range);
 
     Texture texture(args.get_value<int>("width"),
                     args.get_value<int>("height"));

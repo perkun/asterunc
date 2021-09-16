@@ -1,3 +1,7 @@
 asterunc
 ---
 
+# TODO:
+
+* texture blur
+

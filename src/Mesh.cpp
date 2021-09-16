@@ -102,38 +102,38 @@ void Mesh::load_errors(string filename)
 }
 
 
-Range Mesh::get_plus_error_ranges()
+Range Mesh::get_error_ranges(ErrorType et)
 {
-	double max_error_plus = vertices[0].error_plus,
-		   min_error_plus = vertices[0].error_plus;
+    double max_error, min_error;
 
+    if (et == ErrorType::POSITIVE)
+    {
+        max_error = vertices[0].error_plus;
+        min_error = vertices[0].error_plus;
 
-	for (MeshVertex &v: vertices)
-	{
-		if (v.error_plus > max_error_plus)
-			max_error_plus = v.error_plus;
-		if (v.error_plus < min_error_plus)
-			min_error_plus = v.error_plus;
-	}
+        for (MeshVertex &v : vertices)
+        {
+            if (v.error_plus > max_error)
+                max_error = v.error_plus;
+            if (v.error_plus < min_error)
+                min_error = v.error_plus;
+        }
+    }
+    else if (et == ErrorType::NEGATIVE)
+    {
+        max_error = vertices[0].error_minus;
+        min_error = vertices[0].error_minus;
 
-	return Range{min_error_plus, max_error_plus};
+        for (MeshVertex &v : vertices)
+        {
+            if (v.error_minus < max_error)
+                max_error = v.error_minus;
+            if (v.error_minus > min_error)
+                min_error = v.error_minus;
+        }
+    }
 
-}
-
-
-Range Mesh::get_minus_error_ranges()
-{
-    double max_error_minus = vertices[0].error_minus,
-		   min_error_minus = vertices[0].error_minus;
-	for (MeshVertex &v: vertices)
-	{
-		if (v.error_minus < max_error_minus)
-			max_error_minus = v.error_minus;
-		if (v.error_minus > min_error_minus)
-			min_error_minus = v.error_minus;
-	}
-
-	return Range{min_error_minus, max_error_minus};
+    return Range{min_error, max_error};
 }
 
 
@@ -149,11 +149,8 @@ Color Mesh::get_face_color(ErrorType error_type, const Face& face, double range)
         else if (error_type == NEGATIVE)
             error += vertices[face.vertex_idx[i]].error_minus;
     }
-
     error /= 3 * range;
-//     error = std::min(error, 1.0);
 
-    // green is plus 0, red is plus 1
     if (error_type == POSITIVE)
     {
     	error = std::min(error, 1.0);
@@ -173,7 +170,7 @@ Color Mesh::get_face_color(ErrorType error_type, const Face& face, double range)
 }
 
 
-std::vector<Triangle> Mesh::get_triangles(ErrorType error_type)
+std::vector<Triangle> Mesh::get_triangles(ErrorType error_type, double range)
 {
     vector<Triangle> triangles;
     int num_faces = faces.size();
@@ -188,7 +185,7 @@ std::vector<Triangle> Mesh::get_triangles(ErrorType error_type)
 
         Triangle triangle(Point2D(mv0.u, mv0.v), Point2D(mv1.u, mv1.v),
                           Point2D(mv2.u, mv2.v),
-                          get_face_color(error_type, face));
+                          get_face_color(error_type, face, range));
 
         if (triangle.is_split())
         {

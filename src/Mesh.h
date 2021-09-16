@@ -47,13 +47,12 @@ public:
 
 	void calculate_texture_coords();
 	void load_errors(std::string filename);
-	std::vector<Triangle> get_triangles(ErrorType et);
+	std::vector<Triangle> get_triangles(ErrorType et, double range = 0.1);
 	void save_obj(std::string filename);
+	Range get_error_ranges(ErrorType et);
 
 private:
-	Range get_plus_error_ranges();
-	Range get_minus_error_ranges();
-	Color get_face_color(ErrorType et, const Face& face, double range = 0.1);
+	Color get_face_color(ErrorType et, const Face& face, double range);
 };
 
 #endif /* MESH_H_ */
