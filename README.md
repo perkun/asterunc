@@ -3,5 +3,4 @@ asterunc
 
 # TODO:
 
-* texture blur
 

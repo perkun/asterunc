@@ -20,6 +20,7 @@ public:
 	void render_triangles(const std::vector<Triangle> &triangles);
 	void save(std::string filename);
 	void clear();
+	void blur(int kernel_size);
 private:
 	void fill_empty_spots();
 

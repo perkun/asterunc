@@ -125,3 +125,90 @@ void Texture::save(std::string filename)
 
     delete[] png_data;
 }
+
+
+double gauss(double x, double mi, double sigma)
+{
+    return 1 / (sigma * sqrt(2 * M_PI)) *
+           exp(0.5 * (x - mi) * (x - mi) / (sigma * sigma));
+}
+
+
+void Texture::blur(int kernel_size)
+{
+    double kernel[kernel_size][kernel_size];
+
+    double mi = 0;
+    double sigma = (double)kernel_size / 4.;
+
+    // fill the kernel
+    double middle = (double)kernel_size / 2 - 0.5;
+    for (int y = 0; y < kernel_size; y++)
+        for (int x = 0; x < kernel_size; x++)
+        {
+            kernel[y][x] = 1.0 / (kernel_size * kernel_size);
+            // 			gauss(
+            //                 sqrt((x - middle) * (x - middle) + (y - middle) *
+            //                 (y - middle)), 0., sigma);
+        }
+
+    double *tmp_canvas_r = new double[width * height];
+    double *tmp_canvas_g = new double[width * height];
+    double *tmp_canvas_b = new double[width * height];
+
+    for (int canvas_y = kernel_size/2; canvas_y < height - kernel_size/2; canvas_y++)
+        for (int canvas_x = 0; canvas_x < width; canvas_x++)
+        {
+            double value_r = 0;
+            double value_g = 0;
+            double value_b = 0;
+            for (int kernel_y = 0; kernel_y < kernel_size; kernel_y++)
+                for (int kernel_x = 0; kernel_x < kernel_size; kernel_x++)
+                {
+					int x = (canvas_x + kernel_x - kernel_size / 2);
+					int y = (canvas_y + kernel_y - kernel_size / 2);
+
+					// edge wrapping in x
+					if (x < 0)
+						x += width;
+					if (x >= width)
+						x -= width;
+
+					int idx = y * width + x;
+
+
+                    value_r += canvas_r[idx] * kernel[kernel_y][kernel_x];
+                    value_g += canvas_g[idx] * kernel[kernel_y][kernel_x];
+                    value_b += canvas_b[idx] * kernel[kernel_y][kernel_x];
+                }
+            tmp_canvas_r[canvas_y * width + canvas_x] = value_r;
+            tmp_canvas_g[canvas_y * width + canvas_x] = value_g;
+            tmp_canvas_b[canvas_y * width + canvas_x] = value_b;
+        }
+
+
+    for (int canvas_y = 0; canvas_y < kernel_size/2; canvas_y++)
+        for (int canvas_x = 0; canvas_x < width; canvas_x++)
+		{
+			int idx = canvas_y * width + canvas_x;
+            tmp_canvas_r[idx] = canvas_r[idx];
+            tmp_canvas_g[idx] = canvas_g[idx];
+            tmp_canvas_b[idx] = canvas_b[idx];
+		}
+    for (int canvas_y = height - kernel_size/2; canvas_y < height; canvas_y++)
+        for (int canvas_x = 0; canvas_x < width; canvas_x++)
+		{
+			int idx = canvas_y * width + canvas_x;
+            tmp_canvas_r[idx] = canvas_r[idx];
+            tmp_canvas_g[idx] = canvas_g[idx];
+            tmp_canvas_b[idx] = canvas_b[idx];
+		}
+
+
+    delete[] canvas_r;
+    delete[] canvas_g;
+    delete[] canvas_b;
+	canvas_r = tmp_canvas_r;
+	canvas_g = tmp_canvas_g;
+	canvas_b = tmp_canvas_b;
+}

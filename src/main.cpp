@@ -37,6 +37,8 @@ int main(int argc, char *argv[])
                          "Specify the range of value. Values obove will have "
                          "the value of 'range' (cutoff)",
                          false, "0.1");
+    argparser.add_option(
+        'b', "blur", "kernel size of the gausian blur for texture", false, "");
     argparser.add_flag('i', "info", "display info and exit");
     argparser.add_flag('a', "auto-range", "auto max range");
 
@@ -79,9 +81,13 @@ int main(int argc, char *argv[])
     Texture texture(args.get_value<int>("width"),
                     args.get_value<int>("height"));
     texture.render_triangles(triangles_plus);
+	if (args["blur"])
+		texture.blur(args.get_value<int>("blur"));
     texture.save(args.get_value<std::string>("out") + "_plus.png");
 
     texture.render_triangles(triangles_minus);
+	if (args["blur"])
+		texture.blur(args.get_value<int>("blur"));
     texture.save(args.get_value<std::string>("out") + "_minus.png");
 
     // save obj file
