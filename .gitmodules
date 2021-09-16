@@ -1,0 +1,3 @@
+[submodule "lib/cppargs"]
+	path = lib/cppargs
+	url = git@github.com:perkun/cppargs.git
