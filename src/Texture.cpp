@@ -129,8 +129,9 @@ void Texture::save(std::string filename)
 
 double gauss(double x, double mi, double sigma)
 {
-    return 1 / (sigma * sqrt(2 * M_PI)) *
-           exp(0.5 * (x - mi) * (x - mi) / (sigma * sigma));
+	// not normalized gauss;
+
+    return exp(-0.5 * (x - mi) * (x - mi) / (sigma * sigma));
 }
 
 
@@ -143,14 +144,21 @@ void Texture::blur(int kernel_size)
 
     // fill the kernel
     double middle = (double)kernel_size / 2 - 0.5;
+	double sum = 0;
     for (int y = 0; y < kernel_size; y++)
         for (int x = 0; x < kernel_size; x++)
         {
-            kernel[y][x] = 1.0 / (kernel_size * kernel_size);
-            // 			gauss(
-            //                 sqrt((x - middle) * (x - middle) + (y - middle) *
-            //                 (y - middle)), 0., sigma);
+            kernel[y][x] = gauss(
+                   sqrt((x - middle) * (x - middle) + (y - middle) *
+                   (y - middle)), 0., sigma);
+			sum += kernel[y][x];
         }
+
+	// normalize kernel
+    for (int y = 0; y < kernel_size; y++)
+        for (int x = 0; x < kernel_size; x++)
+			kernel[y][x] /= sum;
+
 
     double *tmp_canvas_r = new double[width * height];
     double *tmp_canvas_g = new double[width * height];
