@@ -46,7 +46,7 @@ project "asterunc"
 
 	filter "configurations:Release"
 		-- defines...
-		optimize "On"
+		optimize "Off"
 		defines "RELEASE"
 
 	filter "configurations:Dist"

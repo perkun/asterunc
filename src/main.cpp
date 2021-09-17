@@ -12,6 +12,7 @@ using std::endl;
 
 
 std::string remove_extension(std::string filename);
+std::string file_base(string filename);
 
 
 int main(int argc, char *argv[])
@@ -29,6 +30,9 @@ int main(int argc, char *argv[])
                          "output textures name prefix. You can prepend catalog "
                          "name in front, e.g. path/to/folder/texture",
                          false, "texture");
+    argparser.add_option(
+        "obj-out", "base name of out OBJ file, default: input model basename",
+        false, "");
     argparser.add_option('H', "height", "texture height, default=600px", false,
                          "600");
     argparser.add_option('W', "width", "texture width, default=600px", false,
@@ -81,18 +85,26 @@ int main(int argc, char *argv[])
     Texture texture(args.get_value<int>("width"),
                     args.get_value<int>("height"));
     texture.render_triangles(triangles_plus);
-	if (args["blur"])
-		texture.blur(args.get_value<int>("blur"));
+    if (args["blur"])
+        texture.blur(args.get_value<int>("blur"));
     texture.save(args.get_value<std::string>("out") + "_plus.png");
 
     texture.render_triangles(triangles_minus);
-	if (args["blur"])
-		texture.blur(args.get_value<int>("blur"));
+    if (args["blur"])
+        texture.blur(args.get_value<int>("blur"));
     texture.save(args.get_value<std::string>("out") + "_minus.png");
 
     // save obj file
-    mesh.save_obj(remove_extension(args.get_value<std::string>("model")) +
-                  ".obj");
+    std::string obj_filename;
+    if (args["obj-out"])
+        obj_filename = args.get_value<std::string>("obj-out") + ".obj";
+    else
+    {
+        obj_filename = file_base(args.get_value<std::string>("model"));
+        obj_filename = remove_extension(obj_filename) + ".obj";
+    }
+    mesh.save_obj(obj_filename);
+
 
     return 0;
 }
@@ -106,4 +118,11 @@ std::string remove_extension(std::string filename)
 		return filename;
 	else
 		return filename.substr(0, dot_pos);
+}
+
+
+std::string file_base(string filename)
+{
+	int slash_pos = filename.rfind("/");
+	return filename.substr(slash_pos + 1, filename.size() - slash_pos);
 }
