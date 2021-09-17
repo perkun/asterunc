@@ -75,6 +75,9 @@ def main():
 
         cmd(f"convert -append row1.png row2.png projections/{core_fn}.png")
 
+        # TODO annotate plots (x,y,z) axes and ranges
+
+
     # cleanup
     cmd("rm row1.png row2.png")
     cmd("rm projections/proj_minus_* projections/proj_plus_*")
