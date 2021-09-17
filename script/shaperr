@@ -1,0 +1,84 @@
+#!/bin/python
+
+import argparse
+from os import system as cmd
+from os import mkdir, listdir
+
+
+
+
+
+def main():
+    BLUR_KERNEL_SIZE = 10
+    WIDTH = 300
+    HEIGHT = 300
+    RANGE = 0.1
+
+    parser = argparse.ArgumentParser(
+            description='''Make projections with uncertainty maps''')
+    parser.add_argument("model", help="SHP model filename", type=str)
+    parser.add_argument("errors", help="file with uncertainties", type=str)
+    parser.add_argument(
+        "-r",
+        "--range",
+        help="Specify max value. Values above the range will be truncated to range value.",
+        type=float,
+        required=False)
+
+
+
+    parser.add_argument("-i", "--info", help="Display info and exit",
+            required=False, action='store_true')
+    parser.add_argument("-a", "--auto-range", help="Auto max range",
+            required=False, action='store_true')
+
+    args = parser.parse_args()
+
+
+    if args.info:
+        cmd(f"asterunc --model {args.model} --errors {args.errors} -i")
+        exit
+
+    if "textures" not in listdir():
+        mkdir("textures")
+
+    if "projections" not in listdir():
+        mkdir("projections")
+
+    if args.range:
+        RANGE = args.range
+
+
+    # run asterunc to make textures
+    cmd(f"asterunc --model {args.model} --errors {args.errors} -r {RANGE} "
+        f"-o textures/texture -W {WIDTH} -H {HEIGHT} -b {BLUR_KERNEL_SIZE} "
+        f"--obj-out model")
+
+    # run meshview to make projections
+    for axis in ["x", "nx", "y", "ny", "z", "nz"]:
+        cmd(f"meshview model.obj -t textures/texture_plus.png -p {axis} "
+             "--prefix projections/proj_plus")
+
+        cmd(f"meshview model.obj -t textures/texture_minus.png -p {axis} "
+             "--prefix projections/proj_minus")
+
+    # combine with convert
+    for core_fn in ["proj_plus", "proj_minus"]:
+        folder = "projections"
+        prefix = folder + "/" + core_fn + "_"
+
+        paths = " ".join([prefix + i + ".png" for i in ["ny", "x", "z"]])
+        cmd(f"convert +append {paths} row1.png")
+
+        paths = " ".join([prefix + i + ".png" for i in ["y", "nx", "nz"]])
+        cmd(f"convert +append {paths} row2.png")
+
+        cmd(f"convert -append row1.png row2.png projections/{core_fn}.png")
+
+    # cleanup
+    cmd("rm row1.png row2.png")
+    cmd("rm projections/proj_minus_* projections/proj_plus_*")
+
+
+if __name__ == "__main__":
+    main()

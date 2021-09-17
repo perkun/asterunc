@@ -1,0 +1,12 @@
+#!/bin/bash
+# created by perkun on 17/09/2021
+
+premake5 gmake
+make clean config=release
+make config=release
+
+sudo cp bin/Release/asterunc /usr/local/bin/asterunc
+
+chmod +x script/shaperr
+sudo cp script/shaperr /usr/local/bin/shaperr
+
