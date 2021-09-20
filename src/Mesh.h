@@ -48,7 +48,7 @@ public:
 	void calculate_texture_coords();
 	void load_errors(std::string filename);
 	std::vector<Triangle> get_triangles(ErrorType et, double range = 0.1);
-	void save_obj(std::string filename);
+	void save_obj(std::string filename, double z_rotation = 0.0);
 	Range get_error_ranges(ErrorType et);
 
 private:

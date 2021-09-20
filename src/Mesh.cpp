@@ -212,7 +212,7 @@ std::vector<Triangle> Mesh::get_triangles(ErrorType error_type, double range)
 }
 
 
-void Mesh::save_obj(std::string filename)
+void Mesh::save_obj(std::string filename, double z_rotation)
 {
     FILE *out = fopen(filename.c_str(), "w");
 
@@ -220,16 +220,30 @@ void Mesh::save_obj(std::string filename)
         return;
 
     for (MeshVertex &mv : vertices)
-        fprintf(out, "v %.10lf %.10lf %.10lf\n", mv.x, mv.y, mv.z);
+	{
+        if (z_rotation == 0.0)
+        {
+            fprintf(out, "v %.10lf %.10lf %.10lf\n", mv.x, mv.y, mv.z);
+        }
+        else
+        {
+            // Rotate about z axis
+            double x = mv.x * cos(z_rotation) - mv.y * sin(z_rotation);
+            double y = mv.x * sin(z_rotation) + mv.y * cos(z_rotation);
+            fprintf(out, "v %.10lf %.10lf %.10lf\n", x, y, mv.z);
+        }
+	}
+
     for (MeshVertex &mv : vertices)
         fprintf(out, "vt %.10lf %.10lf\n", mv.u, mv.v);
+
     for (Face &face : faces)
     {
         fprintf(out, "f");
         for (int i = 0; i < 3; i++)
         {
             fprintf(out, " %d/%d", face.vertex_idx[i] + 1,
-					face.vertex_idx[i] +1);
+                    face.vertex_idx[i] + 1);
         }
         fprintf(out, "\n");
     }

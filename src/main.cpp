@@ -43,6 +43,11 @@ int main(int argc, char *argv[])
                          false, "0.1");
     argparser.add_option(
         'b', "blur", "kernel size of the gausian blur for texture", false, "");
+
+    argparser.add_option("rotate",
+                         "rotate output OBJ model by an angle in degrees",
+                         false, "");
+
     argparser.add_flag('i', "info", "display info and exit");
     argparser.add_flag('a', "auto-range", "auto max range");
 
@@ -103,7 +108,11 @@ int main(int argc, char *argv[])
         obj_filename = file_base(args.get_value<std::string>("model"));
         obj_filename = remove_extension(obj_filename) + ".obj";
     }
-    mesh.save_obj(obj_filename);
+
+	double z_rotation = 0.0;
+	if (args["rotate"])
+		z_rotation = args.get_value<double>("rotate") * M_PI / 180.0;
+    mesh.save_obj(obj_filename, z_rotation);
 
 
     return 0;
