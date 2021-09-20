@@ -21,6 +21,9 @@ class Projection:
 
 
 
+
+
+
 def main():
     BLUR_KERNEL_SIZE = 10
     TEXTURE_WIDTH = 300
@@ -45,6 +48,9 @@ def main():
 
     parser.add_argument("-i", "--info", help="Display info and exit",
             required=False, action='store_true')
+    parser.add_argument("--no-cleanup",
+            help="do not remove intermidiate-step images", action='store_true',
+            required=False)
 #     parser.add_argument("-a", "--auto-range", help="Auto max range",
 #             required=False, action='store_true')
 
@@ -125,14 +131,19 @@ def main():
     # RED
     cmd("convert -size 740x60 -define gradient:direction=east "
         "gradient:#00FF00-#FF0000 scale_red.png")
+    cmd("convert scale_red.png -pointsize 50 -fill white -gravity center "
+        "-annotate 0 'positive uncertainty' scale_red.png")
     cmd("composite -gravity center scale_red.png bg.png red.png")
     # BLUE
     cmd("convert -size 740x60 -define gradient:direction=east "
         "gradient:#00FF00-#0000FF scale_blue.png")
+    cmd("convert scale_blue.png -pointsize 50 -fill white -gravity center "
+        "-annotate 0 'negative uncertainty' scale_blue.png")
     cmd("composite -gravity center scale_blue.png bg.png blue.png")
 
     ### find max percentage
     max_percent = (int)(RANGE * 100)
+
     cmd("convert red.png -pointsize 50 "
         f"-annotate +400+65 '0 %' -annotate +1315+65 '{max_percent} %' red.png")
     cmd("convert blue.png -pointsize 50 "
@@ -143,8 +154,9 @@ def main():
 
 
     # cleanup
-    cmd("rm row1.png row2.png bg.png blue.png red.png scale_blue.png scale_red.png")
-    cmd("rm projections/proj_minus_* projections/proj_plus_*")
+    if not args.no_cleanup:
+        cmd("rm row1.png row2.png bg.png blue.png red.png scale_blue.png scale_red.png")
+        cmd("rm projections/proj_minus_* projections/proj_plus_*")
 
 
 if __name__ == "__main__":
